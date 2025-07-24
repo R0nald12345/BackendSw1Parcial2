@@ -9,9 +9,9 @@ const path     = require('path');
 const Sockets  = require('./sockets');
 
 class Server {
-    constructor() {
+    constructor(appMiddlewares, appRoutes) {
         this.app = express();
-        this.port = 8080;
+        this.port = process.env.PORT || 3000;
 
         // Servidor HTTP y WebSockets
         this.server = http.createServer(this.app);
@@ -23,17 +23,20 @@ class Server {
         });
 
         // Inicializar middlewares y sockets
-        this.middlewares();
+        this.middlewares(appMiddlewares, appRoutes);
         this.configurarSockets();
     }
 
-    middlewares() {
+    middlewares(appMiddlewares, appRoutes) {
         // Servir archivos estáticos desde /public
         this.app.use(express.static(path.resolve(__dirname, '../public')));
+        // Middlewares externos
+        if (appMiddlewares) appMiddlewares(this.app);
+        // Rutas externas
+        if (appRoutes) appRoutes(this.app);
     }
 
     configurarSockets() {
-        // Inicializar los sockets
         new Sockets(this.io);
     }
 
